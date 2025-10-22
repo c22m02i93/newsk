@@ -249,144 +249,241 @@ if ( ! function_exists( 'twentytwentyfive_sanitize_svg_upload' ) ) :
 			return $fileinfo;
 		}
 
-		$allowed_tags = array(
-			'svg'      => array(
-				'class'               => true,
-				'xmlns'               => true,
-				'xmlns:xlink'         => true,
-				'width'               => true,
-				'height'              => true,
-				'viewBox'             => true,
-				'preserveAspectRatio' => true,
-				'aria-hidden'         => true,
-				'role'                => true,
-				'focusable'           => true,
-			),
-			'g'        => array(
-				'class'       => true,
-				'clip-path'   => true,
-				'fill'        => true,
-				'fill-rule'   => true,
-				'mask'        => true,
-				'opacity'     => true,
-				'stroke'      => true,
-				'stroke-linecap' => true,
-				'stroke-linejoin' => true,
-				'stroke-width' => true,
-				'transform'   => true,
-			),
-			'path'     => array(
-				'class'         => true,
-				'd'             => true,
-				'fill'          => true,
-				'fill-rule'     => true,
-				'clip-rule'     => true,
-				'mask'          => true,
-				'opacity'       => true,
-				'stroke'        => true,
-				'stroke-linecap' => true,
-				'stroke-linejoin' => true,
-				'stroke-width' => true,
-				'transform'     => true,
-			),
-			'circle'   => array(
-				'class'   => true,
-				'cx'      => true,
-				'cy'      => true,
-				'r'       => true,
-				'fill'    => true,
-				'opacity' => true,
-				'stroke'  => true,
-				'stroke-width' => true,
-			),
-			'ellipse'  => array(
-				'cx'      => true,
-				'cy'      => true,
-				'rx'      => true,
-				'ry'      => true,
-				'fill'    => true,
-				'opacity' => true,
-				'stroke'  => true,
-				'stroke-width' => true,
-			),
-			'line'     => array(
-				'x1'      => true,
-				'y1'      => true,
-				'x2'      => true,
-				'y2'      => true,
-				'fill'    => true,
-				'opacity' => true,
-				'stroke'  => true,
-				'stroke-width' => true,
-			),
-			'polyline' => array(
-				'points'  => true,
-				'fill'    => true,
-				'opacity' => true,
-				'stroke'  => true,
-				'stroke-width' => true,
-			),
-			'polygon'  => array(
-				'points'  => true,
-				'fill'    => true,
-				'opacity' => true,
-				'stroke'  => true,
-				'stroke-width' => true,
-			),
-			'rect'     => array(
-				'class'   => true,
-				'x'       => true,
-				'y'       => true,
-				'width'   => true,
-				'height'  => true,
-				'rx'      => true,
-				'ry'      => true,
-				'fill'    => true,
-				'opacity' => true,
-				'stroke'  => true,
-				'stroke-width' => true,
-			),
-			'title'    => array(),
-			'desc'     => array(),
-			'use'      => array(
-				'href'            => true,
-				'xlink:href'      => true,
-				'width'           => true,
-				'height'          => true,
-				'x'               => true,
-				'y'               => true,
-			),
-			'defs'     => array(),
-			'clipPath' => array(
-				'id' => true,
-			),
-			'mask'     => array(
-				'id'     => true,
-				'maskUnits' => true,
-			),
-			'linearGradient' => array(
-				'id'            => true,
-				'x1'            => true,
-				'x2'            => true,
-				'y1'            => true,
-				'y2'            => true,
-				'gradientUnits' => true,
-			),
-			'stop'     => array(
-				'offset' => true,
-				'stop-color' => true,
-				'stop-opacity' => true,
-			),
-		);
+                $allowed_tags = array(
+                        'svg'      => array(
+                                'class'               => true,
+                                'xmlns'               => true,
+                                'xmlns:xlink'         => true,
+                                'width'               => true,
+                                'height'              => true,
+                                'viewBox'             => true,
+                                'preserveAspectRatio' => true,
+                                'aria-hidden'         => true,
+                                'role'                => true,
+                                'focusable'           => true,
+                                'style'               => true,
+                        ),
+                        'g'        => array(
+                                'class'          => true,
+                                'clip-path'      => true,
+                                'fill'           => true,
+                                'fill-rule'      => true,
+                                'mask'           => true,
+                                'opacity'        => true,
+                                'stroke'         => true,
+                                'stroke-linecap' => true,
+                                'stroke-linejoin' => true,
+                                'stroke-width'   => true,
+                                'transform'      => true,
+                                'style'          => true,
+                        ),
+                        'path'     => array(
+                                'class'          => true,
+                                'd'              => true,
+                                'fill'           => true,
+                                'fill-rule'      => true,
+                                'clip-rule'      => true,
+                                'mask'           => true,
+                                'opacity'        => true,
+                                'stroke'         => true,
+                                'stroke-linecap' => true,
+                                'stroke-linejoin' => true,
+                                'stroke-width'   => true,
+                                'transform'      => true,
+                                'style'          => true,
+                        ),
+                        'circle'   => array(
+                                'class'        => true,
+                                'cx'           => true,
+                                'cy'           => true,
+                                'r'            => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'ellipse'  => array(
+                                'class'        => true,
+                                'cx'           => true,
+                                'cy'           => true,
+                                'rx'           => true,
+                                'ry'           => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'line'     => array(
+                                'class'        => true,
+                                'x1'           => true,
+                                'y1'           => true,
+                                'x2'           => true,
+                                'y2'           => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'polyline' => array(
+                                'class'        => true,
+                                'points'       => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'polygon'  => array(
+                                'class'        => true,
+                                'points'       => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'rect'     => array(
+                                'class'        => true,
+                                'x'            => true,
+                                'y'            => true,
+                                'width'        => true,
+                                'height'       => true,
+                                'rx'           => true,
+                                'ry'           => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'title'    => array(),
+                        'desc'     => array(),
+                        'style'    => array(
+                                'type' => true,
+                        ),
+                        'use'      => array(
+                                'href'       => true,
+                                'xlink:href' => true,
+                                'width'      => true,
+                                'height'     => true,
+                                'x'          => true,
+                                'y'          => true,
+                                'style'      => true,
+                        ),
+                        'defs'     => array(),
+                        'clipPath' => array(
+                                'id'    => true,
+                                'style' => true,
+                        ),
+                        'mask'     => array(
+                                'id'        => true,
+                                'maskUnits' => true,
+                                'style'     => true,
+                        ),
+                        'linearGradient' => array(
+                                'id'               => true,
+                                'x1'               => true,
+                                'x2'               => true,
+                                'y1'               => true,
+                                'y2'               => true,
+                                'gradientUnits'    => true,
+                                'gradientTransform' => true,
+                                'style'            => true,
+                        ),
+                        'stop'     => array(
+                                'offset'       => true,
+                                'stop-color'   => true,
+                                'stop-opacity' => true,
+                                'style'        => true,
+                        ),
+                );
 
-		$sanitized_svg = wp_kses( $svg_contents, $allowed_tags );
+                $allowed_tags = apply_filters( 'twentytwentyfive_svg_allowed_tags', $allowed_tags );
 
-		if ( ! empty( $sanitized_svg ) ) {
-			file_put_contents( $fileinfo['file'], $sanitized_svg );
-		}
+                $sanitized_svg = wp_kses( $svg_contents, $allowed_tags );
 
-		return $fileinfo;
-	}
+                if ( ! empty( $sanitized_svg ) ) {
+                        $sanitized_svg = twentytwentyfive_sanitize_svg_css_blocks( $sanitized_svg );
+                        file_put_contents( $fileinfo['file'], $sanitized_svg );
+                }
+
+                return $fileinfo;
+        }
+endif;
+
+if ( ! function_exists( 'twentytwentyfive_sanitize_svg_css_blocks' ) ) :
+        /**
+         * Cleans CSS embedded inside SVG <style> tags.
+         *
+         * @since Twenty Twenty-Five 1.1
+         *
+         * @param string $svg_markup The sanitized SVG markup.
+         *
+         * @return string
+         */
+        function twentytwentyfive_sanitize_svg_css_blocks( $svg_markup ) {
+                return preg_replace_callback(
+                        '#(<style\b[^>]*>)(.*?)(</style>)#is',
+                        'twentytwentyfive_clean_svg_css_block',
+                        $svg_markup
+                );
+        }
+endif;
+
+if ( ! function_exists( 'twentytwentyfive_clean_svg_css_block' ) ) :
+        /**
+         * Sanitizes the contents of a single SVG <style> block.
+         *
+         * @since Twenty Twenty-Five 1.1
+         *
+         * @param array<int, string> $matches Matches from preg_replace_callback.
+         *
+         * @return string
+         */
+        function twentytwentyfive_clean_svg_css_block( $matches ) {
+                $opening = $matches[1];
+                $css     = wp_kses_no_null( $matches[2] );
+                $closing = $matches[3];
+
+                // Remove potentially unsafe at-rules and CSS expressions.
+                $css = preg_replace( '#@import[^;]+;?#i', '', $css );
+                $css = preg_replace( '#expression\s*\([^\)]+\)#i', '', $css );
+
+                // Strip dangerous URLs.
+                $css = preg_replace_callback( '#url\(([^)]+)\)#i', 'twentytwentyfive_filter_svg_css_url', $css );
+
+                return $opening . $css . $closing;
+        }
+endif;
+
+if ( ! function_exists( 'twentytwentyfive_filter_svg_css_url' ) ) :
+        /**
+         * Filters URLs inside SVG style blocks to ensure only safe protocols are used.
+         *
+         * @since Twenty Twenty-Five 1.1
+         *
+         * @param array<int, string> $matches Matches from preg_replace_callback.
+         *
+         * @return string
+         */
+        function twentytwentyfive_filter_svg_css_url( $matches ) {
+                $raw_url = trim( $matches[1], " \t\n\r\0\x0B'\"");
+
+                if ( '' === $raw_url ) {
+                        return '';
+                }
+
+                $safe_url = esc_url_raw( $raw_url );
+
+                if ( '' === $safe_url && 0 !== strpos( $raw_url, '#' ) ) {
+                        return '';
+                }
+
+                return 'url(' . ( '' !== $safe_url ? $safe_url : $raw_url ) . ')';
+        }
 endif;
 
 if ( ! function_exists( 'twentytwentyfive_svg_admin_styles' ) ) :
