@@ -148,11 +148,360 @@ if ( ! function_exists( 'twentytwentyfive_format_binding' ) ) :
 	 *
 	 * @return string|void Post format name, or nothing if the format is 'standard'.
 	 */
-	function twentytwentyfive_format_binding() {
+		function twentytwentyfive_format_binding() {
 		$post_format_slug = get_post_format();
 
 		if ( $post_format_slug && 'standard' !== $post_format_slug ) {
 			return get_post_format_string( $post_format_slug );
 		}
+	}
+endif;
+
+// Enables SVG uploads with sanitization and admin previews.
+if ( ! function_exists( 'twentytwentyfive_register_svg_support' ) ) :
+	/**
+	 * Adds filters that allow uploading sanitized SVG files and styles their previews in the media library.
+	 *
+	 * @since Twenty Twenty-Five 1.1
+	 *
+	 * @return void
+	 */
+	function twentytwentyfive_register_svg_support() {
+		add_filter( 'upload_mimes', 'twentytwentyfive_allow_svg_uploads' );
+		add_filter( 'wp_check_filetype_and_ext', 'twentytwentyfive_check_svg_mime_type', 10, 5 );
+		add_filter( 'wp_handle_upload', 'twentytwentyfive_sanitize_svg_upload' );
+		add_action( 'admin_head', 'twentytwentyfive_svg_admin_styles' );
+	}
+endif;
+add_action( 'init', 'twentytwentyfive_register_svg_support' );
+
+if ( ! function_exists( 'twentytwentyfive_allow_svg_uploads' ) ) :
+	/**
+	 * Adds SVG to the list of allowed mime types.
+	 *
+	 * @since Twenty Twenty-Five 1.1
+	 *
+	 * @param array<string, string> $mimes Allowed mime types keyed by extension.
+	 *
+	 * @return array<string, string>
+	 */
+	function twentytwentyfive_allow_svg_uploads( $mimes ) {
+		$mimes['svg']  = 'image/svg+xml';
+		$mimes['svgz'] = 'image/svg+xml';
+
+		return $mimes;
+	}
+endif;
+
+if ( ! function_exists( 'twentytwentyfive_check_svg_mime_type' ) ) :
+	/**
+	 * Ensures WordPress recognises SVG mime types correctly during upload validation.
+	 *
+	 * @since Twenty Twenty-Five 1.1
+	 *
+	 * @param array<string, string|null> $data      File data supplied by WordPress.
+	 * @param string                    $file      Full path to the uploaded file.
+	 * @param string                    $filename  Name of the uploaded file.
+	 * @param array<string, string>     $mimes     Allowed mime types keyed by extension.
+	 * @param string                    $real_mime Detected real mime type when available.
+	 *
+	 * @return array<string, string|null>
+	 */
+	function twentytwentyfive_check_svg_mime_type( $data, $file, $filename, $mimes, $real_mime = '' ) {
+		$extension = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+
+		if ( 'svg' !== $extension && 'svgz' !== $extension ) {
+			return $data;
+		}
+
+		if ( class_exists( 'finfo' ) && defined( 'FILEINFO_MIME_TYPE' ) && empty( $real_mime ) ) {
+			$finfo     = new finfo( FILEINFO_MIME_TYPE );
+			$real_mime = $finfo->file( $file );
+		}
+
+		if ( 'image/svg+xml' === $real_mime || empty( $real_mime ) ) {
+			$data['ext']  = $extension;
+			$data['type'] = 'image/svg+xml';
+		}
+
+		return $data;
+	}
+endif;
+
+if ( ! function_exists( 'twentytwentyfive_sanitize_svg_upload' ) ) :
+	/**
+	 * Sanitizes SVG markup to a safe subset before the file is finalised in the uploads directory.
+	 *
+	 * @since Twenty Twenty-Five 1.1
+	 *
+	 * @param array<string, string> $fileinfo Information about the uploaded file.
+	 *
+	 * @return array<string, string>
+	 */
+	function twentytwentyfive_sanitize_svg_upload( $fileinfo ) {
+		if ( empty( $fileinfo['type'] ) || 'image/svg+xml' !== $fileinfo['type'] || empty( $fileinfo['file'] ) ) {
+			return $fileinfo;
+		}
+
+		$svg_contents = file_get_contents( $fileinfo['file'] );
+
+		if ( false === $svg_contents ) {
+			return $fileinfo;
+		}
+
+                $allowed_tags = array(
+                        'svg'      => array(
+                                'class'               => true,
+                                'xmlns'               => true,
+                                'xmlns:xlink'         => true,
+                                'width'               => true,
+                                'height'              => true,
+                                'viewBox'             => true,
+                                'preserveAspectRatio' => true,
+                                'aria-hidden'         => true,
+                                'role'                => true,
+                                'focusable'           => true,
+                                'style'               => true,
+                        ),
+                        'g'        => array(
+                                'class'          => true,
+                                'clip-path'      => true,
+                                'fill'           => true,
+                                'fill-rule'      => true,
+                                'mask'           => true,
+                                'opacity'        => true,
+                                'stroke'         => true,
+                                'stroke-linecap' => true,
+                                'stroke-linejoin' => true,
+                                'stroke-width'   => true,
+                                'transform'      => true,
+                                'style'          => true,
+                        ),
+                        'path'     => array(
+                                'class'          => true,
+                                'd'              => true,
+                                'fill'           => true,
+                                'fill-rule'      => true,
+                                'clip-rule'      => true,
+                                'mask'           => true,
+                                'opacity'        => true,
+                                'stroke'         => true,
+                                'stroke-linecap' => true,
+                                'stroke-linejoin' => true,
+                                'stroke-width'   => true,
+                                'transform'      => true,
+                                'style'          => true,
+                        ),
+                        'circle'   => array(
+                                'class'        => true,
+                                'cx'           => true,
+                                'cy'           => true,
+                                'r'            => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'ellipse'  => array(
+                                'class'        => true,
+                                'cx'           => true,
+                                'cy'           => true,
+                                'rx'           => true,
+                                'ry'           => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'line'     => array(
+                                'class'        => true,
+                                'x1'           => true,
+                                'y1'           => true,
+                                'x2'           => true,
+                                'y2'           => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'polyline' => array(
+                                'class'        => true,
+                                'points'       => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'polygon'  => array(
+                                'class'        => true,
+                                'points'       => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'rect'     => array(
+                                'class'        => true,
+                                'x'            => true,
+                                'y'            => true,
+                                'width'        => true,
+                                'height'       => true,
+                                'rx'           => true,
+                                'ry'           => true,
+                                'fill'         => true,
+                                'opacity'      => true,
+                                'stroke'       => true,
+                                'stroke-width' => true,
+                                'style'        => true,
+                        ),
+                        'title'    => array(),
+                        'desc'     => array(),
+                        'style'    => array(
+                                'type' => true,
+                        ),
+                        'use'      => array(
+                                'href'       => true,
+                                'xlink:href' => true,
+                                'width'      => true,
+                                'height'     => true,
+                                'x'          => true,
+                                'y'          => true,
+                                'style'      => true,
+                        ),
+                        'defs'     => array(),
+                        'clipPath' => array(
+                                'id'    => true,
+                                'style' => true,
+                        ),
+                        'mask'     => array(
+                                'id'        => true,
+                                'maskUnits' => true,
+                                'style'     => true,
+                        ),
+                        'linearGradient' => array(
+                                'id'               => true,
+                                'x1'               => true,
+                                'x2'               => true,
+                                'y1'               => true,
+                                'y2'               => true,
+                                'gradientUnits'    => true,
+                                'gradientTransform' => true,
+                                'style'            => true,
+                        ),
+                        'stop'     => array(
+                                'offset'       => true,
+                                'stop-color'   => true,
+                                'stop-opacity' => true,
+                                'style'        => true,
+                        ),
+                );
+
+                $allowed_tags = apply_filters( 'twentytwentyfive_svg_allowed_tags', $allowed_tags );
+
+                $sanitized_svg = wp_kses( $svg_contents, $allowed_tags );
+
+                if ( ! empty( $sanitized_svg ) ) {
+                        $sanitized_svg = twentytwentyfive_sanitize_svg_css_blocks( $sanitized_svg );
+                        file_put_contents( $fileinfo['file'], $sanitized_svg );
+                }
+
+                return $fileinfo;
+        }
+endif;
+
+if ( ! function_exists( 'twentytwentyfive_sanitize_svg_css_blocks' ) ) :
+        /**
+         * Cleans CSS embedded inside SVG <style> tags.
+         *
+         * @since Twenty Twenty-Five 1.1
+         *
+         * @param string $svg_markup The sanitized SVG markup.
+         *
+         * @return string
+         */
+        function twentytwentyfive_sanitize_svg_css_blocks( $svg_markup ) {
+                return preg_replace_callback(
+                        '#(<style\b[^>]*>)(.*?)(</style>)#is',
+                        'twentytwentyfive_clean_svg_css_block',
+                        $svg_markup
+                );
+        }
+endif;
+
+if ( ! function_exists( 'twentytwentyfive_clean_svg_css_block' ) ) :
+        /**
+         * Sanitizes the contents of a single SVG <style> block.
+         *
+         * @since Twenty Twenty-Five 1.1
+         *
+         * @param array<int, string> $matches Matches from preg_replace_callback.
+         *
+         * @return string
+         */
+        function twentytwentyfive_clean_svg_css_block( $matches ) {
+                $opening = $matches[1];
+                $css     = wp_kses_no_null( $matches[2] );
+                $closing = $matches[3];
+
+                // Remove potentially unsafe at-rules and CSS expressions.
+                $css = preg_replace( '#@import[^;]+;?#i', '', $css );
+                $css = preg_replace( '#expression\s*\([^\)]+\)#i', '', $css );
+
+                // Strip dangerous URLs.
+                $css = preg_replace_callback( '#url\(([^)]+)\)#i', 'twentytwentyfive_filter_svg_css_url', $css );
+
+                return $opening . $css . $closing;
+        }
+endif;
+
+if ( ! function_exists( 'twentytwentyfive_filter_svg_css_url' ) ) :
+        /**
+         * Filters URLs inside SVG style blocks to ensure only safe protocols are used.
+         *
+         * @since Twenty Twenty-Five 1.1
+         *
+         * @param array<int, string> $matches Matches from preg_replace_callback.
+         *
+         * @return string
+         */
+        function twentytwentyfive_filter_svg_css_url( $matches ) {
+                $raw_url = trim( $matches[1], " \t\n\r\0\x0B'\"");
+
+                if ( '' === $raw_url ) {
+                        return '';
+                }
+
+                $safe_url = esc_url_raw( $raw_url );
+
+                if ( '' === $safe_url && 0 !== strpos( $raw_url, '#' ) ) {
+                        return '';
+                }
+
+                return 'url(' . ( '' !== $safe_url ? $safe_url : $raw_url ) . ')';
+        }
+endif;
+
+if ( ! function_exists( 'twentytwentyfive_svg_admin_styles' ) ) :
+	/**
+	 * Adds CSS rules to ensure SVG thumbnails display nicely in the WordPress media library.
+	 *
+	 * @since Twenty Twenty-Five 1.1
+	 *
+	 * @return void
+	 */
+	function twentytwentyfive_svg_admin_styles() {
+		echo '<style>
+		.attachment .thumbnail img[src$=".svg"],
+		.media-modal .attachment-preview img[src$=".svg"],
+		.media-frame-content .attachment-preview svg {
+			width: 100%;
+			height: auto;
+		}
+		</style>';
 	}
 endif;
